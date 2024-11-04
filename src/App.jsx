@@ -1,35 +1,78 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import Nav from "./navigation/Nav";
+import Products from "./products/Products";
+import Recommended from "./recommended/Recommended";
+import "./index.css";
+import Sidebar from "./sidebar/Sidebar";
+import { useState } from "react";
 
+// database
+import data from "./db/data";
+import Card from "./components/Card";
 function App() {
-  const [count, setCount] = useState(0)
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [query, setQuery] = useState("");
+  // ...INPUT FILTER
 
+  const handleInputChange = (event) => {
+    setQuery(event.target.value);
+  };
+
+  const filteredItems = data.filter(
+    (product) =>
+      product.title.toLocaleLowerCase().indexOf(query.toLocaleLowerCase()) !==
+      -1
+  );
+  // ...Radio FILTER
+  const handleChange = (event) => {
+    setSelectedCategory(event.target.value); // Ensure this is set correctly
+  };
+  // ...Buttons FILTER
+  const handleClick = (event) => {
+    setSelectedCategory(event.target.value);
+  };
+
+  const filteredData = (products, selected, query) => {
+    let filteredProducts = products;
+
+    if (query) {
+      filteredProducts = filteredItems;
+    }
+
+    if (selected) {
+      filteredProducts = filteredProducts.filter(
+        ({ category, color, company, newPrice, title }) =>
+          category === selected ||
+          color === selected ||
+          company === selected ||
+          newPrice === selected ||
+          title === selected
+      );
+    }
+
+    return filteredProducts.map(
+      ({ img, title, star, reviews, prevPrice, newPrice }) => (
+        <Card
+          key={Math.random()}
+          img={img}
+          title={title}
+          star={star}
+          reviews={reviews}
+          prevPrice={prevPrice}
+          newPrice={newPrice}
+        />
+      )
+    );
+  };
+
+  const result = filteredData(data, selectedCategory, query);
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <Sidebar handleChange={handleChange} />
+      <Nav query={query} handleInputChange={handleInputChange} />
+      <Recommended handleClick={handleClick} />
+      <Products result={result} />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
